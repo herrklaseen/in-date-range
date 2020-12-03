@@ -8,34 +8,49 @@ local LrTasks = import 'LrTasks'
 local LrApplication = import 'LrApplication'
 
 require 'Dialogs'
--- local DateSplitter = require('src.DateSplitter')
+local DateSplitter = require('DateSplitter')
+DateUtil = require('DateUtil')
 
 local logger = LrLogger('InDateRange')
 logger:enable('print')
 
 local catalog = LrApplication.activeCatalog()
 
+local function createLuaDateFromString(dateString)
+  local year, month, day
+  year = tonumber(string.sub(dateString, 1, 4))
+  month = tonumber(string.sub(dateString, 5, 6))
+  day = tonumber(string.sub(dateString, 7))
+  local date = os.time({
+    year = year,
+    month = month,
+    day = day
+  })
+
+  return date
+end
+
+local function showDebugDialog(text)
+  return LrFunctionContext.callWithContext( "setCreatedDate", function(context, input)
+    local ui = Dialogs.debug(context, input)
+    local result = LrDialogs.presentModalDialog {
+      title = "Set created date",
+      contents = ui,
+    }
+
+    return result
+  end, { message = text } )
+end
+
 local function getDateRange(input)
 
   return LrFunctionContext.callWithContext( "showCustomDialog", function( context, input )
-    local path = _PLUGIN.path
-    local debugInfo = {
-      message = path
-    }
-
     local props = LrBinding.makePropertyTable( context )
     props.photos = input.photos
     props.startDate = input.startDate
     props.endDate = input.endDate
 
-    local debugUI = Dialogs.debug(context, debugInfo)
-
-    LrDialogs.presentModalDialog {
-      title = "Debug",
-      contents = debugUI,
-    }
-
-    local c = Dialogs.selectDate(context, input)
+    local c = Dialogs.selectDate(props)
 
     local result = LrDialogs.presentModalDialog {
       title = "Set created date",
@@ -55,22 +70,40 @@ local function getDateRange(input)
 
 end
 
-local function setCreatedDate(photos, startDate, endDate)
-  local props = {}
-  local fileNames = ''
-
+local function setDatesOnPhotos(photos, dates) 
+  local dateString
   for i,photo in ipairs(photos) do
-    local result = photo:getFormattedMetadata('fileName')
+    dateString = os.date('%FT%H:%M:%S', dates[i])
+    photo:setRawMetadata('dateCreated', dateString)
+  end
+end
+
+local function setCreatedDate(photos, startDate, endDate)
+  local luaDateStart = createLuaDateFromString(startDate)
+  local luaDateEnd = createLuaDateFromString(endDate) 
+
+  local ds = DateSplitter:new(luaDateStart, luaDateEnd)
+  local dates = ds:split(#photos)
+
+
+  local fileNames = {}
+  for i,photo in ipairs(photos) do
+    fileNames[i] = photo:getFormattedMetadata('fileName')
   end
 
-  return LrFunctionContext.callWithContext( "setCreatedDate", function(context, input)
-    local ui = Dialogs.debug(context, input)
-    local result = LrDialogs.presentModalDialog {
-      title = "Set created date",
-      contents = ui,
-    }
-  end, fileNames)
+  local debug = 'Setting the following dates on files: \n\n'
+  for i,file in ipairs(fileNames) do
+    debug = debug .. file .. ': ' .. os.date('%FT%H:%M:%S', dates[i]) .. '\n'
+  end
+
+  debug = debug .. '\nPress OK to go ahead.'
+
+  local result = showDebugDialog(debug)
+  if result == 'ok' then
+    setDatesOnPhotos(photos, dates)
+  end
 end
+
 
 local function main()
   local defaultDate = LrDate.currentTime();
@@ -83,8 +116,13 @@ local function main()
 
   local result = getDateRange(input)
 
-  logger:trace('selected start date: ' .. result.startDate)
-  setCreatedDate(catalog:getTargetPhotos(), result.startDate, result.endDate)
+  if result == nil then 
+    return 
+  end
+
+  catalog:withWriteAccessDo("Set dateCreated on multiple photos", function()
+    setCreatedDate(catalog:getTargetPhotos(), result.startDate, result.endDate)
+  end)
 end
 
 LrTasks.startAsyncTask(main)

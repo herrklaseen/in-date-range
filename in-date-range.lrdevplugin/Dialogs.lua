@@ -9,11 +9,7 @@ local spacer16 = f:spacer {
 
 Dialogs = {}
 
-function Dialogs.selectDate(context, input) 
-  local props = LrBinding.makePropertyTable( context )
-  props.photos = input.photos
-  props.startDate = input.startDate
-  props.endDate = input.endDate
+function Dialogs.selectDate(props) 
 
 
   local c = f:column {
@@ -35,7 +31,7 @@ function Dialogs.selectDate(context, input)
 
     f:row {
       f:static_text {
-        title = "Number of currently selected photos: " .. #input.photos,
+        title = "Number of currently selected photos: " .. #props.photos,
         height_in_lines = -1,
         width_in_chars = 32
       }
