@@ -7,6 +7,7 @@ local LrLogger = import 'LrLogger'
 local LrTasks = import 'LrTasks'
 local LrApplication = import 'LrApplication'
 
+local Info = require('Info')
 require 'Dialogs'
 local DateSplitter = require('DateSplitter')
 DateUtil = require('DateUtil')
@@ -104,8 +105,17 @@ local function setCreatedDate(photos, startDate, endDate)
   end
 end
 
+local function exportVersion()
+  local versionString = table.concat({ Info.VERSION.major, Info.VERSION.minor, Info.VERSION.revision, Info.VERSION.build }, '.')
+  local versionFile = io.open(_PLUGIN.path .. '/version.txt', 'w')
+  versionFile:write(versionString, '\n')
+  versionFile:flush()
+  versionFile:close()
+end
 
 local function main()
+  exportVersion()
+
   local defaultDate = LrDate.currentTime();
 
   local input = {
