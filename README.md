@@ -1,6 +1,6 @@
 # in-date-range
 
-A lightroom plugin to help setting creation date on a number of images at once. The user specifies a date range within which the creation date should fall within. The plugin calculates as many timestamps as there are images and applies them to the images. The dates will be applied in same order as the images. So, for instance, if the images are sorted by file name, the dates will be applied with the oldest date on the first image, etc. 
+A Lightroom Classic plugin to help setting creation date on a number of images at once. The user specifies a date range within which the creation date should fall. The plugin calculates as many timestamps as selected images and applies a date to each. The dates will be applied in same order as the images. So, for instance, if the images are sorted by file name, the dates will be applied with the oldest date on the first image, etc. 
 
 ## Please note
 
