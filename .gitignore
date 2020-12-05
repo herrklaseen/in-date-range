@@ -1,1 +1,3 @@
 in-date-range.lrdevplugin/datesplitter-lua
+*.tar*
+*.lrplugin
