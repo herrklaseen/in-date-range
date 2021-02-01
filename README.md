@@ -51,7 +51,7 @@ The date handling in Lightroom has several inconsistencies that are difficult to
 
 ### ModifyDate already set in image metadata
 
-If the `ModifyDate` metadata field is set on the actual file (maybe another application changed it), you might need to reset all date-related fields. This can be accomplished using the excellent but daunting EXIF Tool by Phil Harvey. Proceed to install and read its documentation here: https://exiftool.org/. After resetting with exiftool, you may need to follow the "Brutish workflow" outlined above. 
+If the `ModifyDate` metadata field is set on the actual file (maybe another application changed it), you might need to reset all date-related fields on the actual image file. This can be accomplished using the excellent but daunting EXIF Tool by Phil Harvey. Proceed to install and read its documentation here: https://exiftool.org/. After date-related fields with exiftool, you may need to follow the "Brutish workflow" outlined above. 
 
 As it becomes increasingly difficult to change the dates on the photos the later you do it, I recommend that you do this directly after import. 
 
