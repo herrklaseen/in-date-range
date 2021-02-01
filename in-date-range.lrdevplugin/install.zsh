@@ -12,7 +12,7 @@ if [[ -d $datelib/src ]] then
 
   rm -rf $datelib
 else
-  print Nothing clean up, installing
+  print Nothing to clean up, installing
 fi
 
 git clone git@github.com:herrklaseen/datesplitter-lua.git
