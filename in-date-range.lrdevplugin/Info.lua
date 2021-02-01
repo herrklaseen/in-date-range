@@ -20,6 +20,6 @@ return {
       file = "Main.lua",
     },
   },
-  VERSION = { major=0, minor=0, revision=2, build=0, },
+  VERSION = { major=0, minor=1, revision=0, build=0, },
 }
 
