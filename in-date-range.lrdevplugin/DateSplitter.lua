@@ -2,10 +2,14 @@ DateUtil = require('DateUtil')
 Allotter = require('Allotter')
 
 DateSplitter = {}
-function DateSplitter:new(startDate, endDate)
+function DateSplitter:new(startDate, endDate, startHour, endHour)
+    local hours = self:coerceHours(startHour, endHour)
     local ds = {}
     ds.startDate = startDate
     ds.endDate = endDate
+    ds.startHour =  hours.startHour
+    ds.endHour = hours.endHour
+
     setmetatable(ds, self)
     self.__index = self
     return ds
@@ -19,7 +23,7 @@ function DateSplitter:split(parts)
   local fullDays = DateUtil.daysInInterval(self.startDate, self.endDate)
   local slots = fullDays + 1
   local distribution = Allotter:allot(parts, slots)
-  distribution = DateSplitter:shiftDistribution(distribution)
+  distribution = self:shiftDistribution(distribution)
 
   local returnDates = {}
 
@@ -31,15 +35,15 @@ function DateSplitter:split(parts)
       year=startDateAsTable.year,
       month=startDateAsTable.month,
       day=startDateAsTable.day + (slot - 1),
-      hour=0,
+      hour=self.startHour,
       min=0,
       sec=0
     })
-    local durationAtSlot = DateSplitter:getDurationAtDate(dateAtSlot)
-    local durationInSeconds = DateSplitter:getDurationInSeconds(durationAtSlot[1], durationAtSlot[2])
+    local durationAtSlot = self:getDurationAtDate(dateAtSlot)
+    local durationInSeconds = self:getDurationInSeconds(durationAtSlot[1], durationAtSlot[2])
     local divisor = 0
 
-    -- Divide the duration with the number of parts at the current slot, 
+    -- Divide the duration with the number of parts at the current slot,
     -- but remove one from the parts to eventually get dates that
     -- start and end roughly at the specified interval.
     if (parts == 1) then
@@ -102,14 +106,14 @@ function DateSplitter:shiftDistribution(distribution)
 end
 
 function DateSplitter:getDurationAtDate(date)
-  local dateAsTable = os.date('*t', self.startDate)
+  local dateAsTable = os.date('*t', date)
   local duration = {}
 
   local intervalStart = os.time({
     year=dateAsTable.year,
     month=dateAsTable.month,
     day=dateAsTable.day,
-    hour=0,
+    hour=self.startHour,
     min=0,
     sec=0
   })
@@ -118,7 +122,7 @@ function DateSplitter:getDurationAtDate(date)
     year=dateAsTable.year,
     month=dateAsTable.month,
     day=dateAsTable.day,
-    hour=23,
+    hour=self.endHour,
     min=59,
     sec=59
   })
@@ -130,6 +134,36 @@ end
 
 function DateSplitter:getDurationInSeconds(startDate, endDate)
   return endDate - startDate
+end
+
+function DateSplitter:coerceHours(startHour, endHour)
+  local result = {}
+  result.startHour = startHour
+  result.endHour = endHour
+
+  if (result.startHour == nil) then
+    result.startHour = 0
+  end
+
+  if (result.endHour == nil) then
+    result.endHour = 23
+  end
+
+  if (result.startHour < 0) then
+    result.startHour = 0
+  elseif (result.startHour > 23) then
+      result.startHour = 23
+  end
+
+  if (result.endHour < result.startHour) then
+    result.endHour = result.startHour
+  end
+
+  if (result.endHour > 23) then
+    result.endHour = 23
+  end
+
+  return result
 end
 
 return DateSplitter
