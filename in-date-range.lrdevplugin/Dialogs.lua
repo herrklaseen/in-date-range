@@ -10,8 +10,6 @@ local spacer16 = f:spacer {
 Dialogs = {}
 
 function Dialogs.selectDate(props) 
-
-
   local c = f:column {
 
     -- Bind the table to the view.  This enables controls to be bound
@@ -55,6 +53,26 @@ function Dialogs.selectDate(props)
         },
         f:edit_field {
           value = LrView.bind( "endDate" )
+        }
+      }
+    },
+
+    f:row {
+      f:column {
+        f:static_text {
+          title = "Start hour (0–23)"
+        },
+        f:edit_field {
+          value = LrView.bind( "startHour" )
+        }
+      },
+
+      f:column {
+        f:static_text {
+          title = "End hour (0–23)"
+        },
+        f:edit_field {
+          value = LrView.bind( "endHour" )
         }
       }
     }

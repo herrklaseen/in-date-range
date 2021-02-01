@@ -44,12 +44,13 @@ local function showDebugDialog(text)
 end
 
 local function getDateRange(input)
-
   return LrFunctionContext.callWithContext( "showCustomDialog", function( context, input )
     local props = LrBinding.makePropertyTable( context )
     props.photos = input.photos
     props.startDate = input.startDate
     props.endDate = input.endDate
+    props.startHour = input.startHour
+    props.endHour = input.endHour
 
     local c = Dialogs.selectDate(props)
 
@@ -61,17 +62,18 @@ local function getDateRange(input)
     if ( result == 'ok' ) then
       local out = {
         startDate = props.startDate,
-        endDate = props.endDate
+        endDate = props.endDate,
+        startHour = tonumber(props.startHour),
+        endHour = tonumber(props.endHour)
       }
       return out
     else
       return nil
     end
-  end, input) -- end main function
-
+  end, input)
 end
 
-local function setDatesOnPhotos(photos, dates) 
+local function setDatesOnPhotos(photos, dates)
   local dateString
   for i,photo in ipairs(photos) do
     dateString = os.date('%FT%H:%M:%S', dates[i])
@@ -79,11 +81,11 @@ local function setDatesOnPhotos(photos, dates)
   end
 end
 
-local function setCreatedDate(photos, startDate, endDate)
-  local luaDateStart = createLuaDateFromString(startDate)
-  local luaDateEnd = createLuaDateFromString(endDate) 
+local function setCreatedDate(photos, dateProps)
+  local luaDateStart = createLuaDateFromString(dateProps.startDate)
+  local luaDateEnd = createLuaDateFromString(dateProps.endDate)
 
-  local ds = DateSplitter:new(luaDateStart, luaDateEnd)
+  local ds = DateSplitter:new(luaDateStart, luaDateEnd, dateProps.startHour, dateProps.endHour)
   local dates = ds:split(#photos)
 
 
@@ -121,17 +123,19 @@ local function main()
   local input = {
     startDate = LrDate.timeToUserFormat(defaultDate, "%Y%m%d"),
     endDate = LrDate.timeToUserFormat(defaultDate, "%Y%m%d"),
+    startHour = 8,
+    endHour = 20,
     photos = catalog:getTargetPhotos()
   }
 
-  local result = getDateRange(input)
+  local dateProperties = getDateRange(input)
 
-  if result == nil then 
-    return 
+  if dateProperties == nil then
+    return
   end
 
   catalog:withWriteAccessDo("Set dateCreated on multiple photos", function()
-    setCreatedDate(catalog:getTargetPhotos(), result.startDate, result.endDate)
+    setCreatedDate(catalog:getTargetPhotos(), dateProperties)
   end)
 end
 
